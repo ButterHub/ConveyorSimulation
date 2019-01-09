@@ -6,10 +6,9 @@ import java.util.*;
 
 public class Conveyor {
   private int length;
-  private Worker[] workers;
   private String[] inputPossibilities;
   private double[] inputProbabilities;
-  // TODO Improve Data structure for conveyor contents
+  private Workers workers;
   private LinkedList<String> conveyor = new LinkedList<String>();
   private int t = 0;
   private int conveyorCount = 0;
@@ -17,46 +16,24 @@ public class Conveyor {
 
   private Map<String, Integer> outputLog = new HashMap<String, Integer>();
 
-  public Conveyor(int length, int accessPoints, String[] inputPossibilities, double[] inputProbabilities) {
-    if (length <= 0) throw new Error("Conveyor length must be larger than 0.");
+  public Conveyor(int length, int workersPerPosition, String[] inputPossibilities, double[] inputProbabilities) {
     this.length = length;
     this.inputPossibilities = inputPossibilities;
     this.inputProbabilities = inputProbabilities;
-    workers = new Worker[accessPoints]; // declaring array
-    for (int i = 0; i < accessPoints; i++) {
-      workers[i] = new Worker(); // instantiating array
-    }
-
+    // Prepare output log (counting the occurrences of each possibility, A, B, empty/ 0)
     for (int i = 0; i < inputProbabilities.length; i++) {
       probabilitySum += inputProbabilities[i];
       outputLog.put(inputPossibilities[i], 0);
     }
-    if (probabilitySum > 1.01 || probabilitySum < 0.99) {
-      throw new Error("Probabilities do not add up to 1.");
-    }
+    // Count of products made
+    outputLog.put("P", 0);
 
-    // Create workers (# = length * accessPoints)
-  }
+    // Error checks
+    if (length <= 0) throw new Error("Conveyor length must be larger than 0.");
+    if (probabilitySum > 1.01 || probabilitySum < 0.99) throw new Error("Probabilities do not add up to 1.");
 
-  public String pickupComponent(int position) {
-    String content;
-    // Error check: if element empty, nothing to pick up.
-    if (conveyor.get(position) == "0") {
-      throw new IllegalAccessError("Slot is empty, cannot pick up component.");
-    } else {
-      // Success: Pick up component, leaving nothing in the slot
-      content = conveyor.set(position, "0");
-    }
-    return content;
-  }
-
-  public void dropoffProduct(int position) {
-    // if not empty, fail
-    if (conveyor.get(position) != "0") {
-      throw new IllegalAccessError("Slot is not empty, no space to drop product.");
-    } else {
-      conveyor.set(position, "P");
-    }
+    // Create workers object (all workers are in 1 workers instance)
+    workers = new Workers(length, workersPerPosition);
   }
 
   // Move TIME steps in time, which calls generateNextItem and completeEndItem
@@ -70,7 +47,7 @@ public class Conveyor {
         completeEndItem();
         generateNextItem();
         // One step for each position (shared between all workers)
-        Worker.work();
+        conveyor = workers.operateStep(conveyor);
         t++;
       }
     }
@@ -92,7 +69,6 @@ public class Conveyor {
         result = inputPossibilities[inputProbabilities.length - 1];
       }
     }
-
     // Add to conveyor
     conveyor.addFirst(result);
   }

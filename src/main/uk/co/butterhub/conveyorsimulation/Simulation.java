@@ -9,7 +9,7 @@ public class Simulation {
       int time = Integer.parseInt(args[0]);
       // Input possibilities and probabilities
       double[] inputProbabilities = {1.0 / 3, 1.0 / 3, 1.0 / 3};
-      String[] inputPossibilities = {"A",   "B",   "0"  };
+      String[] inputPossibilities = {"A",   "B",   ""  };
       Conveyor firstConveyor = new Conveyor(1, 2, inputPossibilities, inputProbabilities);
       firstConveyor.operateSteps(time);
     }
